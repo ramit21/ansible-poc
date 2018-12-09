@@ -1,0 +1,9 @@
+
+- hosts: Ramits-MacBook-Air.local
+  vars:
+     user: ramit
+  tasks:
+  - block:
+    - name: "create the user {{ user }}"
+        name: "{{ user }}"
+    

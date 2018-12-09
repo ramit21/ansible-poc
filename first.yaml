@@ -1,0 +1,26 @@
+
+- hosts: Ramits-MacBook-Air.local
+  vars_files:
+        - packages.yml
+  tasks:
+  - block:
+    - name: "install the packages"
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - "{{ package }}"
+  - block:
+    - name: "print hostname"
+      debug: 
+        var: ansible_hostname
+    - name: "print ipV4"
+      debug: 
+        var: ansible_default_ipv4_addresses
+    - name: "start httpd service"
+      service:
+           name: httpd
+           state: restarted
+    
+
+ 
