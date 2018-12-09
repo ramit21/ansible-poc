@@ -17,9 +17,14 @@ In case of Ansible, we generate ssh keys (public and private) on master, and pus
 
 **Playbook** is an ordered lists of tasks, saved so you can run those tasks in that order repeatedly. (.yaml files)
 
+You use **- block** in the playbooks to club various tasks to be perfomed, and then put conditions on when the tasks in the block are to be executed.
+
 **Work** is pushed to remote hosts when Ansible executes.
 
-**Modules** are programs that perform actual tasks of a play. (eg copy is a module which a playbook can use as a step in it)
+**Modules** are programs that perform actual tasks of a play. (eg copy is a module which a playbook can use as a step in it). 3 types of Modules:
+1. Core modules: shipped by Ansible
+2. Extra modules: contributed by community
+3. Custom Modules: Self made modules, also known as Plugins
 
 Ansible is immediately useful because it comes with 100+ modules for basic administrative tasks.
 
@@ -118,9 +123,141 @@ become = yes # to allso sudo
 
 ## Basic Ansible Commands
 ```
-ansible ukx1234 -m ping #ping is a built in Ansible module
-ansilbe all -m ping #pings all managed nodes
-ansible new -m ping #pings newly added managed node
-ansible -i myInvFile -m ping #pings all servers in the mentioned inventory
+ansible ukx1234 -m ping             -> ping is a built in Ansible module
+ansilbe all -m ping                 -> pings all managed nodes
+ansible new -m ping                 -> pings newly added managed node
+ansible -i myInvFile -m ping        -> pings all servers in the mentioned inventory 
+ansible -m setup                    -> fetches all facts of the remote nodes. You can also push facts to remote hosts using Ansible.
+
+ansible-playbook first.yaml          -> executes the playbook first.yaml
+ansible-playbook first.yaml —syntax  -> checks the syntax of the yaml
+ansible-playbook first.yaml —vvvv    -> for detailed execution
+ansible-playbook first.yaml —step    -> for step by step execution, ie., asking for y/n from the user 
+
+ansible-doc -s yum                   -> print documentation about the module.
+
 ```
+Yum is used on unix to install/upgrade things. On macOS use 'package' instead of yum.
+
+## Variables in playbooks
+
+Variables are good way to manage dynamic values for a given environment in your ansible project. Underscore can be used. eg val_1, val_2
+
+3 ways to give variables:
+1. Global scope: varaibles set from command line or ansible configuration.
+2. Play scope: variables set in the play and related structures.
+3. Host scope: Variables set on host groups and inidvidual hosts by inventory, fact gathering, or registered tasks.
+
+Give variables in yaml using vars:
+```
+variable file using var_files
+```
+or via command line:
+```
+ansible-playbook firt.yaml -e package=php
+```
+
+## Conditions and loops in Playbooks
+You can put conditions as well in  yaml on variables or fact values
+eg. 
+```
+block:
+…
+…
+when: ansible_local.xyz == abc
+```
+so the entire block will execute only when block is satisfied
+
+Loops using 'with'.
+
+Eg of Nested loops:
+```
+with_nested:
+ - [‘joe’, ‘jane’]
+ - [1,2,3]
+```
+ so first joe is run in loopfor 1, 2 and 3 ; followed by jane for 1,2 and 3.
+
+## Facts
+
+**SETUP** module is automatically called by playbooks to gather useful variables about remote hosts that can be used in playbooks.
+
+Custom facts are created by administrator and push them to a managed node. You can run setup command to read the facts.
+
+Custom facts are found by Ansible if the file is saved in /etc/ansible/facts.d directory. Files must have .fact as an extension. A fact file is plain text or json file:
+
+```
+[packages]
+abc
+xyz
+
+users
+ramit
+joe
+```
+
+## Handlers: 
+To handle notify events when invoked from some specific tasks. Handlers are executed only after all tasks in the playbook have been executed first in the playbook. Ansible invokes handlers only if task acquires CHANGED status. eg. in below, first file is copied, and then only its handler is executed that restarts httpd server.
+```
+-name:
+    copy:
+    src: '/etc/source/file1'
+    dest: '/etc/destination'
+
+notify:
+   - restart_apache
+
+handlers:
+  - name: restart_apache
+        service:
+           name: httpd
+	   state: restarted
+```       
+
+#Jinja2:
+Ansible uses Jinja2 templating system to modify files before they are distributed to managed hosts.
+
+Templates are useful when system needs to have slightly modified versions of the same file. Jinja 2 is useful for making dynamic changes. You can also use loops and conditonal statements in jina2 templates.
+
+eg. of template file named hosts.j2:
+```
+Welcome to {{ ansible_hostname }}
+Today’s date is :- { ansible_date_time.date }
+```
+In yaml give it as:
+```
+ task:
+   template:
+    src: hosts.j2
+    dest: index.html
+```
+
+In above example, contents of hosts.j2 with variable values are placed into index.html
+
+# Roles
+Roles provide a framework for fully independent, or interdependent collections of variables,tasks, files, templates and modules. In Ansible, the role is the primary mechanism for breaking a playbook into multiple files. This simplifies writing complex playbooks, and it makes them easier to reuse.
+
+Role sructure is used to define dependencies and allow sharing easy sharing of code with others.
+```
+host:
+ pre_tasks:
+ 
+ roles:
+
+ tasks:
+
+ post_tasks:
+```
+Ansible community has created some roles which can be downloaded from github and used as and when needed.
+```
+ansible-galaxy search ‘install git’ —platform e1
+
+ansible-galaxy init --offline --init-path=role example   ->  will download the role
+
+brew install tree    -> you can then do ‘tree role’ to see folder structure
+```
+ansible-vault used for encrypted passwords
+
+
+
 
