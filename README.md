@@ -235,7 +235,9 @@ In yaml give it as:
 In above example, contents of hosts.j2 with variable values are placed into index.html
 
 # Roles
-Roles provide a framework for fully independent, or interdependent collections of variables,tasks, files, templates and modules. In Ansible, the role is the primary mechanism for breaking a playbook into multiple files. This simplifies writing complex playbooks, and it makes them easier to reuse.
+Puppet-Modules, Chef-Cookbooks, Ansible-Roles
+
+Roles provide a framework for fully independent, or interdependent collections of variables, tasks, files, templates and modules. In Ansible, the role is the primary mechanism for breaking a playbook into multiple files. This simplifies writing complex playbooks, and it makes them easier to reuse.
 
 Role sructure is used to define dependencies and allow sharing easy sharing of code with others.
 ```
@@ -252,12 +254,24 @@ Ansible community has created some roles which can be downloaded from github and
 ```
 ansible-galaxy search ‘install git’ —platform e1
 
-ansible-galaxy init --offline --init-path=role example   ->  will download the role
+ansible-galaxy init --offline --init-path=role example   ->  will create the role, offline here says that we are not downloading anything from the internet
 
 brew install tree    -> you can then do ‘tree role’ to see folder structure
+
+ansible-galaxy creates template
 ```
 ansible-vault used for encrypted passwords
 
+Components of a Role (what goes into each of the folders):
+1. defaults: Data about roles/application and default variables.
+2. files: static files to be copied onto remote machines. eg. when running copy module from a task, just give the destination folder path, source is automatically picked up from files.
+3. handlers: notify handlers
+4. meta: info about roles, author, supported platforms, dependencies etc.
+5. templates: dynamic files using Jinja2.
+6. tasks: core logic eg copy files, install packages etc.
+7. vars: store variables. Variables stored under vars have higher priority than in defaults folder.
+
+Roles: https://www.youtube.com/watch?v=SgxtxzQJM4w
 
 
 
